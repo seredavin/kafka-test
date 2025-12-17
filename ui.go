@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -58,7 +59,8 @@ type model struct {
 	producer        *KafkaProducer
 	currentView     viewMode
 	configInputs    []textinput.Model
-	messageInputs   []textinput.Model
+	messageKeyInput textinput.Model
+	messageValueArea textarea.Model
 	configFocus     int
 	messageFocus    int
 	messages        []Message
@@ -141,28 +143,28 @@ func initialModel(config *Config) model {
 	}
 	configInputs[valueSerdeField].Width = 60
 
-	// Create message input fields
-	messageInputs := make([]textinput.Model, 2)
+	// Create message key input
+	messageKeyInput := textinput.New()
+	messageKeyInput.Placeholder = "optional-key"
+	messageKeyInput.Width = 100
 
-	// Message key input
-	messageInputs[msgKeyField] = textinput.New()
-	messageInputs[msgKeyField].Placeholder = "optional-key"
-	messageInputs[msgKeyField].Width = 100
-
-	// Message value input
-	messageInputs[msgValueField] = textinput.New()
-	messageInputs[msgValueField].Placeholder = `{"example": "json"}`
-	messageInputs[msgValueField].Width = 120
+	// Create message value textarea
+	messageValueArea := textarea.New()
+	messageValueArea.Placeholder = `{"example": "json"}`
+	messageValueArea.SetWidth(120)
+	messageValueArea.SetHeight(8)
+	messageValueArea.CharLimit = 0
 
 	return model{
-		config:        config,
-		currentView:   configView,
-		configInputs:  configInputs,
-		messageInputs: messageInputs,
-		configFocus:   0,
-		messageFocus:  0,
-		messages:      []Message{},
-		connected:     false,
+		config:           config,
+		currentView:      configView,
+		configInputs:     configInputs,
+		messageKeyInput:  messageKeyInput,
+		messageValueArea: messageValueArea,
+		configFocus:      0,
+		messageFocus:     0,
+		messages:         []Message{},
+		connected:        false,
 	}
 }
 
@@ -191,9 +193,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.configFocus = (m.configFocus + 1) % int(maxConfigField)
 				m.configInputs[m.configFocus].Focus()
 			} else {
-				m.messageInputs[m.messageFocus].Blur()
-				m.messageFocus = (m.messageFocus + 1) % int(maxMessageField)
-				m.messageInputs[m.messageFocus].Focus()
+				if m.messageFocus == int(msgKeyField) {
+					m.messageKeyInput.Blur()
+					m.messageFocus = int(msgValueField)
+					m.messageValueArea.Focus()
+				} else {
+					m.messageValueArea.Blur()
+					m.messageFocus = int(msgKeyField)
+					m.messageKeyInput.Focus()
+				}
 			}
 			return m, nil
 
@@ -207,13 +215,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.configInputs[m.configFocus].Focus()
 			} else {
-				m.messageInputs[m.messageFocus].Blur()
-				if m.messageFocus == 0 {
-					m.messageFocus = int(maxMessageField) - 1
+				if m.messageFocus == int(msgValueField) {
+					m.messageValueArea.Blur()
+					m.messageFocus = int(msgKeyField)
+					m.messageKeyInput.Focus()
 				} else {
-					m.messageFocus--
+					m.messageKeyInput.Blur()
+					m.messageFocus = int(msgValueField)
+					m.messageValueArea.Focus()
 				}
-				m.messageInputs[m.messageFocus].Focus()
 			}
 			return m, nil
 
@@ -223,12 +233,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.connected {
 					m.configInputs[m.configFocus].Blur()
 					m.currentView = messageView
-					m.messageInputs[m.messageFocus].Focus()
+					if m.messageFocus == int(msgKeyField) {
+						m.messageKeyInput.Focus()
+					} else {
+						m.messageValueArea.Focus()
+					}
 				} else {
 					m.statusMessage = "Please connect to Kafka first (F5)"
 				}
 			} else {
-				m.messageInputs[m.messageFocus].Blur()
+				if m.messageFocus == int(msgKeyField) {
+					m.messageKeyInput.Blur()
+				} else {
+					m.messageValueArea.Blur()
+				}
 				m.currentView = configView
 				m.configInputs[m.configFocus].Focus()
 			}
@@ -257,12 +275,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 
-		// Delegate to textinput for handling
+		// Delegate to textinput/textarea for handling
 		var cmd tea.Cmd
 		if m.currentView == configView {
 			m.configInputs[m.configFocus], cmd = m.configInputs[m.configFocus].Update(msg)
 		} else {
-			m.messageInputs[m.messageFocus], cmd = m.messageInputs[m.messageFocus].Update(msg)
+			if m.messageFocus == int(msgKeyField) {
+				m.messageKeyInput, cmd = m.messageKeyInput.Update(msg)
+			} else {
+				m.messageValueArea, cmd = m.messageValueArea.Update(msg)
+			}
 		}
 		return m, cmd
 
@@ -285,22 +307,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err != nil {
 			m.messages = append(m.messages, Message{
 				Timestamp: time.Now(),
-				Key:       m.messageInputs[msgKeyField].Value(),
-				Value:     m.messageInputs[msgValueField].Value(),
+				Key:       m.messageKeyInput.Value(),
+				Value:     m.messageValueArea.Value(),
 				Status:    fmt.Sprintf("Failed: %v", msg.err),
 			})
 		} else {
 			m.messages = append(m.messages, Message{
 				Timestamp: time.Now(),
-				Key:       m.messageInputs[msgKeyField].Value(),
-				Value:     m.messageInputs[msgValueField].Value(),
+				Key:       m.messageKeyInput.Value(),
+				Value:     m.messageValueArea.Value(),
 				Status:    "Success",
 				Partition: msg.partition,
 				Offset:    msg.offset,
 			})
 			// Clear message fields after successful send
-			m.messageInputs[msgKeyField].SetValue("")
-			m.messageInputs[msgValueField].SetValue("")
+			m.messageKeyInput.SetValue("")
+			m.messageValueArea.SetValue("")
 		}
 		return m, nil
 	}
@@ -431,17 +453,17 @@ func (m model) renderMessageView() string {
 	}
 
 	rows = append(rows, keyLabel)
-	rows = append(rows, m.messageInputs[msgKeyField].View())
+	rows = append(rows, m.messageKeyInput.View())
 	rows = append(rows, "")
 
 	// Value field
-	valueLabel := fieldStyle.Render("Message Value:")
+	valueLabel := fieldStyle.Render("Message Value (JSON):")
 	if m.messageFocus == int(msgValueField) {
-		valueLabel = focusedStyle.Render("Message Value:")
+		valueLabel = focusedStyle.Render("Message Value (JSON):")
 	}
 
 	rows = append(rows, valueLabel)
-	rows = append(rows, m.messageInputs[msgValueField].View())
+	rows = append(rows, m.messageValueArea.View())
 	rows = append(rows, "")
 
 	// Message history
@@ -550,8 +572,8 @@ func (m *model) sendMessage() tea.Cmd {
 			return errMsg{fmt.Errorf("not connected to Kafka")}
 		}
 
-		key := m.messageInputs[msgKeyField].Value()
-		value := m.messageInputs[msgValueField].Value()
+		key := m.messageKeyInput.Value()
+		value := m.messageValueArea.Value()
 
 		if value == "" {
 			return errMsg{fmt.Errorf("message value cannot be empty")}
@@ -564,7 +586,7 @@ func (m *model) sendMessage() tea.Cmd {
 
 func (m *model) formatJSON() tea.Cmd {
 	return func() tea.Msg {
-		value := m.messageInputs[msgValueField].Value()
+		value := m.messageValueArea.Value()
 		if value == "" {
 			return successMsg{"Nothing to format"}
 		}
@@ -579,7 +601,7 @@ func (m *model) formatJSON() tea.Cmd {
 			return errMsg{err}
 		}
 
-		m.messageInputs[msgValueField].SetValue(string(formatted))
+		m.messageValueArea.SetValue(string(formatted))
 		return successMsg{"JSON formatted successfully"}
 	}
 }
