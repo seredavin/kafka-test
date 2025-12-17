@@ -70,7 +70,10 @@ func TestModel_Update_WindowSize(t *testing.T) {
 	m := initialModel(&Config{})
 
 	newModel, _ := m.Update(tea.WindowSizeMsg{Width: 100, Height: 50})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.width != 100 {
 		t.Errorf("Expected width 100, got %d", updatedModel.width)
@@ -87,7 +90,10 @@ func TestModel_Update_Tab(t *testing.T) {
 	m.configFocus = 0
 
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.configFocus != 1 {
 		t.Errorf("Expected configFocus 1 after tab, got %d", updatedModel.configFocus)
@@ -100,7 +106,10 @@ func TestModel_Update_ShiftTab(t *testing.T) {
 	m.configFocus = 1
 
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyShiftTab})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.configFocus != 0 {
 		t.Errorf("Expected configFocus 0 after shift+tab, got %d", updatedModel.configFocus)
@@ -113,7 +122,10 @@ func TestModel_Update_ShiftTab_Wraparound(t *testing.T) {
 	m.configFocus = 0
 
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyShiftTab})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	expectedFocus := int(maxConfigField) - 1
 	if updatedModel.configFocus != expectedFocus {
@@ -127,7 +139,10 @@ func TestModel_Update_F2_NotConnected(t *testing.T) {
 	m.connected = false
 
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyF2})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.currentView != configView {
 		t.Error("Should not switch to messageView when not connected")
@@ -144,7 +159,10 @@ func TestModel_Update_F2_Connected(t *testing.T) {
 	m.connected = true
 
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyF2})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.currentView != messageView {
 		t.Error("Should switch to messageView when connected")
@@ -157,7 +175,10 @@ func TestModel_Update_F2_BackToConfig(t *testing.T) {
 	m.connected = true
 
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyF2})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.currentView != configView {
 		t.Error("Should switch back to configView from messageView")
@@ -168,7 +189,10 @@ func TestModel_Update_SuccessMsg(t *testing.T) {
 	m := initialModel(&Config{})
 
 	newModel, _ := m.Update(successMsg{msg: "Test success"})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.statusMessage != "Test success" {
 		t.Errorf("Expected status 'Test success', got %s", updatedModel.statusMessage)
@@ -180,7 +204,10 @@ func TestModel_Update_ErrMsg(t *testing.T) {
 
 	testErr := errMsg{err: &testError{msg: "Test error"}}
 	newModel, _ := m.Update(testErr)
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if !strings.Contains(updatedModel.statusMessage, "Test error") {
 		t.Errorf("Expected error in status, got %s", updatedModel.statusMessage)
@@ -196,7 +223,10 @@ func TestModel_Update_ConnectSuccessMsg(t *testing.T) {
 	}
 
 	newModel, _ := m.Update(connectSuccessMsg{producer: mockProducer})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if !updatedModel.connected {
 		t.Error("Expected connected to be true after connectSuccessMsg")
@@ -223,7 +253,10 @@ func TestModel_Update_MessageResult_Success(t *testing.T) {
 	}
 
 	newModel, _ := m.Update(result)
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if len(updatedModel.messages) != 1 {
 		t.Fatalf("Expected 1 message in history, got %d", len(updatedModel.messages))
@@ -272,7 +305,10 @@ func TestModel_Update_MessageResult_Error(t *testing.T) {
 	}
 
 	newModel, _ := m.Update(result)
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if len(updatedModel.messages) != 1 {
 		t.Fatalf("Expected 1 message in history, got %d", len(updatedModel.messages))
@@ -461,7 +497,10 @@ func TestModel_TabNavigation_MessageView(t *testing.T) {
 
 	// Tab from key to value
 	newModel, _ := m.Update(tea.KeyMsg{Type: tea.KeyTab})
-	updatedModel := newModel.(model)
+	updatedModel, ok := newModel.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel.messageFocus != int(msgValueField) {
 		t.Errorf("Expected messageFocus to be msgValueField, got %d", updatedModel.messageFocus)
@@ -469,7 +508,10 @@ func TestModel_TabNavigation_MessageView(t *testing.T) {
 
 	// Tab again should wrap to key
 	newModel2, _ := updatedModel.Update(tea.KeyMsg{Type: tea.KeyTab})
-	updatedModel2 := newModel2.(model)
+	updatedModel2, ok := newModel2.(model)
+	if !ok {
+		t.Fatal("type assertion failed")
+	}
 
 	if updatedModel2.messageFocus != int(msgKeyField) {
 		t.Errorf("Expected messageFocus to wrap to msgKeyField, got %d", updatedModel2.messageFocus)

@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+const testTopic = "test-topic"
+
 func TestLoadConfig_Default(t *testing.T) {
 	// Use a non-existent path to force default config
 	homeDir := t.TempDir()
@@ -25,7 +27,7 @@ func TestLoadConfig_Default(t *testing.T) {
 		t.Errorf("Expected default broker localhost:9092, got %v", config.Brokers)
 	}
 
-	if config.Topic != "test-topic" {
+	if config.Topic != testTopic {
 		t.Errorf("Expected default topic test-topic, got %s", config.Topic)
 	}
 
@@ -109,7 +111,7 @@ func TestSaveConfig(t *testing.T) {
 
 	testConfig := &Config{
 		Brokers:    []string{"test-broker:9092"},
-		Topic:      "test-topic",
+		Topic:      testTopic,
 		CertFile:   "/cert.pem",
 		KeyFile:    "/key.pem",
 		CAFile:     "/ca.pem",
@@ -138,7 +140,7 @@ func TestSaveConfig(t *testing.T) {
 		t.Fatalf("Failed to unmarshal config: %v", err)
 	}
 
-	if savedConfig.Topic != "test-topic" {
+	if savedConfig.Topic != testTopic {
 		t.Errorf("Expected topic test-topic, got %s", savedConfig.Topic)
 	}
 
