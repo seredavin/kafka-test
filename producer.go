@@ -77,11 +77,11 @@ func createTLSConfig(certFile, keyFile, caFile string) (*tls.Config, error) {
 func (p *KafkaProducer) SendMessage(key, value string) (partition int32, offset int64, err error) {
 	msg := &sarama.ProducerMessage{
 		Topic: p.config.Topic,
-		Value: sarama.StringEncoder(value),
+		Value: p.encodeValue(value, p.config.ValueSerde),
 	}
 
 	if key != "" {
-		msg.Key = sarama.StringEncoder(key)
+		msg.Key = p.encodeValue(key, p.config.KeySerde)
 	}
 
 	partition, offset, err = p.producer.SendMessage(msg)
@@ -90,6 +90,20 @@ func (p *KafkaProducer) SendMessage(key, value string) (partition int32, offset 
 	}
 
 	return partition, offset, nil
+}
+
+// encodeValue encodes a value based on the specified serde type
+func (p *KafkaProducer) encodeValue(value, serde string) sarama.Encoder {
+	switch serde {
+	case "string":
+		return sarama.StringEncoder(value)
+	case "json", "bytearray":
+		// For JSON and ByteArray, use ByteEncoder
+		return sarama.ByteEncoder([]byte(value))
+	default:
+		// Default to ByteEncoder for JSON (most common case)
+		return sarama.ByteEncoder([]byte(value))
+	}
 }
 
 // Close closes the producer connection

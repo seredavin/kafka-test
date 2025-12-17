@@ -14,6 +14,8 @@ type Config struct {
 	KeyFile      string   `json:"key_file"`
 	CAFile       string   `json:"ca_file"`
 	UseAuth      bool     `json:"use_auth"`
+	KeySerde     string   `json:"key_serde"`   // "string", "json", "bytearray"
+	ValueSerde   string   `json:"value_serde"` // "string", "json", "bytearray"
 }
 
 // LoadConfig loads configuration from file
@@ -30,9 +32,11 @@ func LoadConfig() (*Config, error) {
 		if os.IsNotExist(err) {
 			// Return default config if file doesn't exist
 			return &Config{
-				Brokers: []string{"localhost:9092"},
-				Topic:   "test-topic",
-				UseAuth: false,
+				Brokers:    []string{"localhost:9092"},
+				Topic:      "test-topic",
+				UseAuth:    false,
+				KeySerde:   "json",
+				ValueSerde: "json",
 			}, nil
 		}
 		return nil, err

@@ -28,6 +28,8 @@ const (
 	certField
 	keyField
 	caField
+	keySerdeField
+	valueSerdeField
 	maxConfigField
 )
 
@@ -86,7 +88,7 @@ type messageResult struct {
 // initialModel creates the initial model
 func initialModel(config *Config) model {
 	// Create config input fields
-	configInputs := make([]textinput.Model, 5)
+	configInputs := make([]textinput.Model, 7)
 
 	// Broker input
 	configInputs[brokerField] = textinput.New()
@@ -118,6 +120,26 @@ func initialModel(config *Config) model {
 	configInputs[caField].Placeholder = "/path/to/ca.pem"
 	configInputs[caField].SetValue(config.CAFile)
 	configInputs[caField].Width = 60
+
+	// Key Serde input
+	configInputs[keySerdeField] = textinput.New()
+	configInputs[keySerdeField].Placeholder = "string, json, bytearray"
+	if config.KeySerde != "" {
+		configInputs[keySerdeField].SetValue(config.KeySerde)
+	} else {
+		configInputs[keySerdeField].SetValue("json")
+	}
+	configInputs[keySerdeField].Width = 60
+
+	// Value Serde input
+	configInputs[valueSerdeField] = textinput.New()
+	configInputs[valueSerdeField].Placeholder = "string, json, bytearray"
+	if config.ValueSerde != "" {
+		configInputs[valueSerdeField].SetValue(config.ValueSerde)
+	} else {
+		configInputs[valueSerdeField].SetValue("json")
+	}
+	configInputs[valueSerdeField].Width = 60
 
 	// Create message input fields
 	messageInputs := make([]textinput.Model, 2)
@@ -351,6 +373,8 @@ func (m model) renderConfigView() string {
 		{"Client Certificate Path", certField},
 		{"Client Key Path", keyField},
 		{"CA Certificate Path", caField},
+		{"Key Serde (string/json/bytearray)", keySerdeField},
+		{"Value Serde (string/json/bytearray)", valueSerdeField},
 	}
 
 	var rows []string
@@ -475,6 +499,8 @@ func (m *model) connect() tea.Cmd {
 		m.config.CertFile = m.configInputs[certField].Value()
 		m.config.KeyFile = m.configInputs[keyField].Value()
 		m.config.CAFile = m.configInputs[caField].Value()
+		m.config.KeySerde = m.configInputs[keySerdeField].Value()
+		m.config.ValueSerde = m.configInputs[valueSerdeField].Value()
 
 		// Enable mTLS if certificates are provided
 		m.config.UseAuth = m.configInputs[certField].Value() != "" &&
@@ -504,6 +530,8 @@ func (m *model) saveConfig() tea.Cmd {
 		m.config.CertFile = m.configInputs[certField].Value()
 		m.config.KeyFile = m.configInputs[keyField].Value()
 		m.config.CAFile = m.configInputs[caField].Value()
+		m.config.KeySerde = m.configInputs[keySerdeField].Value()
+		m.config.ValueSerde = m.configInputs[valueSerdeField].Value()
 		m.config.UseAuth = m.configInputs[certField].Value() != "" &&
 			m.configInputs[keyField].Value() != "" &&
 			m.configInputs[caField].Value() != ""
