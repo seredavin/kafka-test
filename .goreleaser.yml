@@ -64,7 +64,7 @@ brews:
   - name: kafka-producer-ui
     repository:
       owner: seredavin
-      name: tap
+      name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     folder: Formula
     homepage: https://github.com/seredavin/kafka-test

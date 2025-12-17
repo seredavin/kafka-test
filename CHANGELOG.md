@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [1.0.7] - 2024-12-17
+
+### Исправлено
+- Переименован tap репозиторий в `homebrew-tap` (стандарт Homebrew)
+- Исправлена конфигурация GoReleaser для использования `homebrew-tap`
+- Теперь `brew tap seredavin/tap` работает корректно
+
+### Публикация
+- Первый успешный релиз с автоматической публикацией в Homebrew tap
+
 ## [1.0.6] - 2024-12-17
 
 ### Исправлено
@@ -119,7 +129,8 @@
 - `Исправлено` - для исправления ошибок
 - `Безопасность` - для изменений, связанных с безопасностью
 
-[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.6...HEAD
+[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.7...HEAD
+[1.0.7]: https://github.com/seredavin/kafka-test/compare/v1.0.6...v1.0.7
 [1.0.6]: https://github.com/seredavin/kafka-test/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.5
 [1.0.4]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.4
