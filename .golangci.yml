@@ -1,9 +1,8 @@
-version: 2
+version: "2"
 
 run:
   timeout: 5m
   tests: true
-  modules-download-mode: readonly
 
 linters:
   enable:
@@ -22,15 +21,33 @@ linters:
     - goconst
     - bodyclose
 
-linters-settings:
+settings:
   errcheck:
     check-type-assertions: true
     check-blank: true
   
   govet:
-    enable-all: true
-    disable:
-      - shadow
+    enable:
+      - assign
+      - atomic
+      - bools
+      - buildtag
+      - composites
+      - copylocks
+      - fieldalignment
+      - httpresponse
+      - loopclosure
+      - lostcancel
+      - nilfunc
+      - printf
+      - shift
+      - stdmethods
+      - structtag
+      - tests
+      - unmarshal
+      - unreachable
+      - unsafeptr
+      - unusedresult
   
   revive:
     rules:
@@ -48,23 +65,5 @@ linters-settings:
     locale: US
 
 issues:
-  exclude-use-default: false
   max-issues-per-linter: 0
   max-same-issues: 0
-  
-  exclude-rules:
-    # Exclude some linters from running on tests files.
-    - path: _test\.go
-      linters:
-        - gosec
-        - errcheck
-        - goconst
-    
-    # Ignore long lines in tests
-    - path: _test\.go
-      linters:
-        - lll
-
-output:
-  sort-results: true
-
