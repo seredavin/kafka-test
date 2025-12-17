@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 )
 
@@ -163,14 +164,16 @@ func TestSaveConfig(t *testing.T) {
 		t.Error("Expected UseAuth to be true")
 	}
 
-	// Check file permissions
-	info, err := os.Stat(configPath)
-	if err != nil {
-		t.Fatalf("Failed to stat config file: %v", err)
-	}
+	// Check file permissions (skip on Windows as it doesn't support Unix permissions)
+	if runtime.GOOS != "windows" {
+		info, err := os.Stat(configPath)
+		if err != nil {
+			t.Fatalf("Failed to stat config file: %v", err)
+		}
 
-	if info.Mode().Perm() != 0600 {
-		t.Errorf("Expected file permissions 0600, got %v", info.Mode().Perm())
+		if info.Mode().Perm() != 0600 {
+			t.Errorf("Expected file permissions 0600, got %v", info.Mode().Perm())
+		}
 	}
 }
 
