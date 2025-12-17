@@ -13,10 +13,15 @@ func TestLoadConfig_Default(t *testing.T) {
 	// Use a non-existent path to force default config
 	homeDir := t.TempDir()
 
-	// Temporarily change home dir
+	// Temporarily change home dir (both HOME and USERPROFILE for Windows compatibility)
 	origHome := os.Getenv("HOME")
+	origUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", homeDir)
-	defer os.Setenv("HOME", origHome)
+	os.Setenv("USERPROFILE", homeDir)
+	defer func() {
+		os.Setenv("HOME", origHome)
+		os.Setenv("USERPROFILE", origUserProfile)
+	}()
 
 	config, err := LoadConfig()
 	if err != nil {
@@ -69,10 +74,15 @@ func TestLoadConfig_ExistingFile(t *testing.T) {
 		t.Fatalf("Failed to write test config: %v", err)
 	}
 
-	// Temporarily change home dir
+	// Temporarily change home dir (both HOME and USERPROFILE for Windows compatibility)
 	origHome := os.Getenv("HOME")
+	origUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", homeDir)
-	defer os.Setenv("HOME", origHome)
+	os.Setenv("USERPROFILE", homeDir)
+	defer func() {
+		os.Setenv("HOME", origHome)
+		os.Setenv("USERPROFILE", origUserProfile)
+	}()
 
 	config, err := LoadConfig()
 	if err != nil {
@@ -104,10 +114,15 @@ func TestSaveConfig(t *testing.T) {
 	homeDir := t.TempDir()
 	configPath := filepath.Join(homeDir, ".kafka-producer.json")
 
-	// Temporarily change home dir
+	// Temporarily change home dir (both HOME and USERPROFILE for Windows compatibility)
 	origHome := os.Getenv("HOME")
+	origUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", homeDir)
-	defer os.Setenv("HOME", origHome)
+	os.Setenv("USERPROFILE", homeDir)
+	defer func() {
+		os.Setenv("HOME", origHome)
+		os.Setenv("USERPROFILE", origUserProfile)
+	}()
 
 	testConfig := &Config{
 		Brokers:    []string{"test-broker:9092"},
@@ -168,10 +183,15 @@ func TestLoadConfig_InvalidJSON(t *testing.T) {
 		t.Fatalf("Failed to write invalid config: %v", err)
 	}
 
-	// Temporarily change home dir
+	// Temporarily change home dir (both HOME and USERPROFILE for Windows compatibility)
 	origHome := os.Getenv("HOME")
+	origUserProfile := os.Getenv("USERPROFILE")
 	os.Setenv("HOME", homeDir)
-	defer os.Setenv("HOME", origHome)
+	os.Setenv("USERPROFILE", homeDir)
+	defer func() {
+		os.Setenv("HOME", origHome)
+		os.Setenv("USERPROFILE", origUserProfile)
+	}()
 
 	_, err := LoadConfig()
 	if err == nil {
