@@ -7,14 +7,24 @@
 
 ## [Unreleased]
 
-## [1.0.4] - 2024-12-17
+## [1.0.5] - 2024-12-17
 
 ### Добавлено
 - MIT License файл для легальной дистрибуции
+- Единый release workflow на базе GoReleaser
 
 ### Исправлено
-- GoReleaser конфигурация теперь включает LICENSE в релизные архивы
-- Исправлены проблемы с публикацией релиза
+- Удален конфликтующий старый release workflow
+- GoReleaser теперь единственный способ создания релизов
+- Устранены проблемы с дублированием релизов
+
+### Удалено
+- Старый ручной release workflow (заменен на GoReleaser)
+
+## [1.0.4] - 2024-12-17
+
+### Примечание
+- Технический релиз (конфликт workflow)
 
 ## [1.0.3] - 2024-12-17
 
@@ -99,7 +109,8 @@
 - `Исправлено` - для исправления ошибок
 - `Безопасность` - для изменений, связанных с безопасностью
 
-[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.4...HEAD
+[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.5...HEAD
+[1.0.5]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.5
 [1.0.4]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.4
 [1.0.3]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.3
 [1.0.2]: https://github.com/seredavin/kafka-test/compare/v1.0.1...v1.0.2
