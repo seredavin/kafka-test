@@ -7,19 +7,33 @@
 
 ## [Unreleased]
 
+## [1.0.1] - 2024-12-17
+
 ### Добавлено
 - GitHub Actions workflows для CI/CD
-- Автоматическая сборка релизов для множества платформ
+- Автоматическая сборка релизов для множества платформ (Linux, macOS, Windows)
 - Конфигурация golangci-lint
 - Документация по процессу релизов (RELEASE.md)
 - Руководство для контрибьюторов (CONTRIBUTING.md)
 - Шаблоны для issues и Pull Requests
-- Поддержка различных SerDe форматов (string, json, bytearray)
+- Makefile для упрощения разработки
+- Dockerfile для контейнеризации
+- Dependabot для автоматического обновления зависимостей
 
 ### Изменено
 - Обновлен README с инструкциями по установке из релизов
+- Обновлены зависимости через Dependabot (IBM/sarama, actions, и др.)
 
-## [1.0.0] - YYYY-MM-DD
+### Исправлено
+- Исправлены все ошибки golangci-lint (errcheck, goconst, fieldalignment)
+- Добавлена поддержка Windows в тестах (HOME/USERPROFILE)
+- Исправлена проверка file permissions для Windows
+- Использование bash shell в CI для корректной работы на Windows
+- Настроена совместимость golangci-lint с Go 1.24
+- Добавлены permissions для security scan в GitHub Actions
+- Улучшена кроссплатформенность (Linux, macOS, Windows)
+
+## [1.0.0] - 2024-12-17
 
 ### Добавлено
 - Псевдографический интерфейс (TUI) на базе Bubble Tea
@@ -58,6 +72,7 @@
 - `Исправлено` - для исправления ошибок
 - `Безопасность` - для изменений, связанных с безопасностью
 
-[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/seredavin/kafka-test/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/seredavin/kafka-test/releases/tag/v1.0.0
 
