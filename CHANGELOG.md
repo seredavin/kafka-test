@@ -7,6 +7,16 @@
 
 ## [Unreleased]
 
+## [1.0.6] - 2024-12-17
+
+### Исправлено
+- Исправлено имя Homebrew tap репозитория (tap вместо homebrew-tap)
+- Обновлена документация с правильными командами установки
+
+### Публикация
+- Первый релиз с автоматической публикацией в Homebrew tap
+- Формула будет автоматически опубликована в seredavin/tap
+
 ## [1.0.5] - 2024-12-17
 
 ### Добавлено
@@ -109,7 +119,8 @@
 - `Исправлено` - для исправления ошибок
 - `Безопасность` - для изменений, связанных с безопасностью
 
-[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.5...HEAD
+[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.6...HEAD
+[1.0.6]: https://github.com/seredavin/kafka-test/compare/v1.0.5...v1.0.6
 [1.0.5]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.5
 [1.0.4]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.4
 [1.0.3]: https://github.com/seredavin/kafka-test/compare/v1.0.2...v1.0.3
