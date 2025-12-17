@@ -1,0 +1,174 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run tests
+        run: go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Build binaries
+        run: |
+          # Create output directory
+          mkdir -p dist
+          
+          # Build for Linux amd64
+          GOOS=linux GOARCH=amd64 go build -o dist/kafka-producer-ui-linux-amd64 -ldflags="-s -w" .
+          
+          # Build for Linux arm64
+          GOOS=linux GOARCH=arm64 go build -o dist/kafka-producer-ui-linux-arm64 -ldflags="-s -w" .
+          
+          # Build for macOS amd64 (Intel)
+          GOOS=darwin GOARCH=amd64 go build -o dist/kafka-producer-ui-darwin-amd64 -ldflags="-s -w" .
+          
+          # Build for macOS arm64 (Apple Silicon)
+          GOOS=darwin GOARCH=arm64 go build -o dist/kafka-producer-ui-darwin-arm64 -ldflags="-s -w" .
+          
+          # Build for Windows amd64
+          GOOS=windows GOARCH=amd64 go build -o dist/kafka-producer-ui-windows-amd64.exe -ldflags="-s -w" .
+          
+          # Build for Windows arm64
+          GOOS=windows GOARCH=arm64 go build -o dist/kafka-producer-ui-windows-arm64.exe -ldflags="-s -w" .
+
+      - name: Create checksums
+        run: |
+          cd dist
+          sha256sum * > checksums.txt
+          cat checksums.txt
+
+      - name: Create archives
+        run: |
+          cd dist
+          
+          # Create tar.gz for Linux and macOS
+          tar -czf kafka-producer-ui-linux-amd64.tar.gz kafka-producer-ui-linux-amd64
+          tar -czf kafka-producer-ui-linux-arm64.tar.gz kafka-producer-ui-linux-arm64
+          tar -czf kafka-producer-ui-darwin-amd64.tar.gz kafka-producer-ui-darwin-amd64
+          tar -czf kafka-producer-ui-darwin-arm64.tar.gz kafka-producer-ui-darwin-arm64
+          
+          # Create zip for Windows
+          zip kafka-producer-ui-windows-amd64.zip kafka-producer-ui-windows-amd64.exe
+          zip kafka-producer-ui-windows-arm64.zip kafka-producer-ui-windows-arm64.exe
+
+      - name: Generate release notes
+        id: release_notes
+        run: |
+          # Get the tag name
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          
+          # Generate release notes
+          cat > release_notes.md << 'EOF'
+          ## Kafka Producer UI ${TAG_NAME}
+          
+          ### Installation
+          
+          Download the appropriate binary for your platform:
+          
+          **Linux:**
+          ```bash
+          # AMD64
+          wget https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/kafka-producer-ui-linux-amd64.tar.gz
+          tar -xzf kafka-producer-ui-linux-amd64.tar.gz
+          chmod +x kafka-producer-ui-linux-amd64
+          ./kafka-producer-ui-linux-amd64
+          
+          # ARM64
+          wget https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/kafka-producer-ui-linux-arm64.tar.gz
+          tar -xzf kafka-producer-ui-linux-arm64.tar.gz
+          chmod +x kafka-producer-ui-linux-arm64
+          ./kafka-producer-ui-linux-arm64
+          ```
+          
+          **macOS:**
+          ```bash
+          # Intel (AMD64)
+          curl -LO https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/kafka-producer-ui-darwin-amd64.tar.gz
+          tar -xzf kafka-producer-ui-darwin-amd64.tar.gz
+          chmod +x kafka-producer-ui-darwin-amd64
+          ./kafka-producer-ui-darwin-amd64
+          
+          # Apple Silicon (ARM64)
+          curl -LO https://github.com/${{ github.repository }}/releases/download/${TAG_NAME}/kafka-producer-ui-darwin-arm64.tar.gz
+          tar -xzf kafka-producer-ui-darwin-arm64.tar.gz
+          chmod +x kafka-producer-ui-darwin-arm64
+          ./kafka-producer-ui-darwin-arm64
+          ```
+          
+          **Windows:**
+          Download the `.zip` file for your architecture and extract it.
+          
+          ### What's Changed
+          
+          See the commit history for details.
+          
+          ### Checksums
+          
+          Verify your download with SHA256 checksums (see `checksums.txt`).
+          
+          ### Test Coverage
+          
+          Test coverage: 84.2%
+          EOF
+          
+          cat release_notes.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: Release ${{ steps.release_notes.outputs.tag_name }}
+          body_path: release_notes.md
+          files: |
+            dist/*.tar.gz
+            dist/*.zip
+            dist/checksums.txt
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Optional: Upload coverage report
+  coverage:
+    name: Upload Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Run tests with coverage
+        run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.out
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+

@@ -1,0 +1,15 @@
+# Владельцы кода
+# Эти пользователи будут автоматически запрошены для review при создании PR
+
+# Владельцы по умолчанию для всего репозитория
+* @seredavin
+
+# Владельцы для конкретных файлов
+/.github/ @seredavin
+/RELEASE.md @seredavin
+/CONTRIBUTING.md @seredavin
+
+# Владельцы для кода
+/*.go @seredavin
+/*_test.go @seredavin
+

@@ -1,5 +1,12 @@
 # Binaries
 kafka-producer
+kafka-producer-ui
+kafka-producer-ui-*
+
+# Build output directories
+dist/
+build/
+bin/
 
 # Go build artifacts
 *.exe
@@ -13,6 +20,7 @@ kafka-producer
 
 # Output of go coverage tool
 *.out
+coverage.html
 
 # Dependency directories
 vendor/
@@ -26,3 +34,13 @@ vendor/
 
 # OS
 .DS_Store
+Thumbs.db
+
+# Release artifacts
+*.tar.gz
+*.zip
+checksums.txt
+
+# Temporary files
+tmp/
+temp/

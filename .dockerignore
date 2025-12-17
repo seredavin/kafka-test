@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.github
+
+# Build artifacts
+build/
+dist/
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+kafka-producer
+kafka-producer-ui
+kafka-producer-ui-*
+
+# Test artifacts
+*.test
+*.out
+coverage.html
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Archives
+*.tar.gz
+*.zip
+
+# Config files (may contain sensitive data)
+.kafka-producer.json
+*.pem
+*.key
+*.crt
+*.csr
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+azure-pipelines.yml
+
+# Dependencies (will be downloaded during build)
+vendor/
+

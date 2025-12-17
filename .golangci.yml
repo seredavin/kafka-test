@@ -1,0 +1,70 @@
+run:
+  timeout: 5m
+  tests: true
+  modules-download-mode: readonly
+
+linters:
+  enable:
+    - errcheck
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - gofmt
+    - goimports
+    - misspell
+    - revive
+    - gosec
+    - unconvert
+    - goconst
+    - bodyclose
+    - noctx
+    - exportloopref
+
+linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  
+  govet:
+    enable-all: true
+    disable:
+      - shadow
+  
+  revive:
+    rules:
+      - name: exported
+        disabled: false
+      - name: unexported-return
+        disabled: true
+  
+  gosec:
+    excludes:
+      - G104 # Audit errors not checked - we check critical ones
+      - G304 # File path from user input - we validate paths
+  
+  misspell:
+    locale: US
+
+issues:
+  exclude-use-default: false
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - gosec
+        - errcheck
+        - goconst
+    
+    # Ignore long lines in tests
+    - path: _test\.go
+      linters:
+        - lll
+
+output:
+  sort-results: true
+

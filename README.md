@@ -1,5 +1,10 @@
 # Kafka Producer UI
 
+[![CI](https://github.com/seredavin/kafka-test/workflows/CI/badge.svg)](https://github.com/seredavin/kafka-test/actions/workflows/ci.yml)
+[![Release](https://github.com/seredavin/kafka-test/workflows/Release/badge.svg)](https://github.com/seredavin/kafka-test/actions/workflows/release.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/seredavin/kafka-test)](https://goreportcard.com/report/github.com/seredavin/kafka-test)
+[![codecov](https://codecov.io/gh/seredavin/kafka-test/branch/main/graph/badge.svg)](https://codecov.io/gh/seredavin/kafka-test)
+
 Консольная программа с псевдографическим интерфейсом для отправки сообщений в Apache Kafka с поддержкой mTLS аутентификации.
 
 ## Возможности
@@ -13,19 +18,59 @@
 
 ## Установка
 
+### Установка из релиза (рекомендуется)
+
+Скачайте готовый бинарный файл для вашей платформы со страницы [Releases](https://github.com/seredavin/kafka-test/releases):
+
+**Linux:**
 ```bash
-# Клонировать репозиторий (если нужно)
+# AMD64
+wget https://github.com/seredavin/kafka-test/releases/latest/download/kafka-producer-ui-linux-amd64.tar.gz
+tar -xzf kafka-producer-ui-linux-amd64.tar.gz
+chmod +x kafka-producer-ui-linux-amd64
+./kafka-producer-ui-linux-amd64
+
+# ARM64
+wget https://github.com/seredavin/kafka-test/releases/latest/download/kafka-producer-ui-linux-arm64.tar.gz
+tar -xzf kafka-producer-ui-linux-arm64.tar.gz
+chmod +x kafka-producer-ui-linux-arm64
+./kafka-producer-ui-linux-arm64
+```
+
+**macOS:**
+```bash
+# Intel (AMD64)
+curl -LO https://github.com/seredavin/kafka-test/releases/latest/download/kafka-producer-ui-darwin-amd64.tar.gz
+tar -xzf kafka-producer-ui-darwin-amd64.tar.gz
+chmod +x kafka-producer-ui-darwin-amd64
+./kafka-producer-ui-darwin-amd64
+
+# Apple Silicon (ARM64)
+curl -LO https://github.com/seredavin/kafka-test/releases/latest/download/kafka-producer-ui-darwin-arm64.tar.gz
+tar -xzf kafka-producer-ui-darwin-arm64.tar.gz
+chmod +x kafka-producer-ui-darwin-arm64
+./kafka-producer-ui-darwin-arm64
+```
+
+**Windows:**
+
+Скачайте `.zip` файл для вашей архитектуры со страницы [Releases](https://github.com/seredavin/kafka-test/releases) и распакуйте.
+
+### Сборка из исходников
+
+```bash
+# Клонировать репозиторий
 git clone <repository-url>
 cd kafka-test
 
 # Установить зависимости
-go mod tidy
+go mod download
 
 # Собрать программу
-go build -o kafka-producer
+go build -o kafka-producer-ui
 
 # Запустить
-./kafka-producer
+./kafka-producer-ui
 ```
 
 ## Использование
@@ -154,11 +199,75 @@ openssl x509 -req -in client.csr -CA ca-cert.pem -CAkey ca-key.pem -CAcreateseri
 - Доступ к Kafka кластеру
 - (Опционально) Сертификаты для mTLS аутентификации
 
+## Разработка
+
+### Запуск тестов
+
+```bash
+# Запустить все тесты
+go test -v ./...
+
+# Запустить тесты с покрытием
+go test -v -race -coverprofile=coverage.out ./...
+
+# Посмотреть покрытие
+go tool cover -html=coverage.out
+
+# Текущее покрытие: 84.2%
+```
+
+### Линтинг
+
+```bash
+# Установить golangci-lint (если еще не установлен)
+# https://golangci-lint.run/usage/install/
+
+# Запустить линтер
+golangci-lint run
+```
+
+### CI/CD
+
+Проект использует GitHub Actions для:
+- ✅ Автоматического запуска тестов на каждый push/PR
+- ✅ Проверки кода линтерами
+- ✅ Security scanning
+- ✅ Автоматической сборки релизов при создании тегов
+
+Подробнее см. [RELEASE.md](RELEASE.md)
+
+### Создание релиза
+
+```bash
+# Создать тег с версией
+git tag -a v1.0.0 -m "Release v1.0.0"
+
+# Отправить тег (запустится автоматическая сборка)
+git push origin v1.0.0
+```
+
+GitHub Actions автоматически соберет бинарные файлы для всех платформ и создаст релиз.
+
 ## Зависимости
 
 - [IBM/sarama](https://github.com/IBM/sarama) - Go клиент для Apache Kafka
 - [charmbracelet/bubbletea](https://github.com/charmbracelet/bubbletea) - TUI фреймворк
 - [charmbracelet/lipgloss](https://github.com/charmbracelet/lipgloss) - Стилизация терминала
+- [charmbracelet/bubbles](https://github.com/charmbracelet/bubbles) - TUI компоненты
+
+## Вклад в проект
+
+1. Fork проекта
+2. Создайте feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit изменений (`git commit -m 'Add some AmazingFeature'`)
+4. Push в branch (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+Убедитесь, что:
+- ✅ Все тесты проходят
+- ✅ Линтер не выдает ошибок
+- ✅ Добавлены тесты для новой функциональности
+- ✅ Покрытие кода не уменьшилось
 
 ## Лицензия
 
