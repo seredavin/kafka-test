@@ -48,9 +48,11 @@ jobs:
         run: go mod verify
 
       - name: Run tests
+        shell: bash
         run: go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
 
       - name: Check test coverage
+        shell: bash
         run: |
           go tool cover -func=coverage.out
           
