@@ -73,6 +73,10 @@ func (e errMsg) Error() string { return e.err.Error() }
 
 type successMsg struct{ msg string }
 
+type connectSuccessMsg struct {
+	producer *KafkaProducer
+}
+
 type messageResult struct {
 	partition int32
 	offset    int64
@@ -242,6 +246,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case successMsg:
 		m.statusMessage = msg.msg
+		return m, nil
+
+	case connectSuccessMsg:
+		m.producer = msg.producer
+		m.connected = true
+		m.statusMessage = "Successfully connected to Kafka"
 		return m, nil
 
 	case errMsg:
@@ -477,10 +487,7 @@ func (m *model) connect() tea.Cmd {
 			return errMsg{err}
 		}
 
-		m.producer = producer
-		m.connected = true
-
-		return successMsg{"Successfully connected to Kafka"}
+		return connectSuccessMsg{producer: producer}
 	}
 }
 
