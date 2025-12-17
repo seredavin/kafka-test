@@ -147,12 +147,12 @@ func initialModel(config *Config) model {
 	// Message key input
 	messageInputs[msgKeyField] = textinput.New()
 	messageInputs[msgKeyField].Placeholder = "optional-key"
-	messageInputs[msgKeyField].Width = 70
+	messageInputs[msgKeyField].Width = 100
 
 	// Message value input
 	messageInputs[msgValueField] = textinput.New()
 	messageInputs[msgValueField].Placeholder = `{"example": "json"}`
-	messageInputs[msgValueField].Width = 70
+	messageInputs[msgValueField].Width = 120
 
 	return model{
 		config:        config,
