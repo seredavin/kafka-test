@@ -8,14 +8,14 @@ import (
 
 // Config holds the application configuration
 type Config struct {
-	Brokers      []string `json:"brokers"`
-	Topic        string   `json:"topic"`
-	CertFile     string   `json:"cert_file"`
-	KeyFile      string   `json:"key_file"`
-	CAFile       string   `json:"ca_file"`
-	UseAuth      bool     `json:"use_auth"`
-	KeySerde     string   `json:"key_serde"`   // "string", "json", "bytearray"
-	ValueSerde   string   `json:"value_serde"` // "string", "json", "bytearray"
+	Brokers    []string `json:"brokers"`
+	Topic      string   `json:"topic"`
+	CertFile   string   `json:"cert_file"`
+	KeyFile    string   `json:"key_file"`
+	CAFile     string   `json:"ca_file"`
+	KeySerde   string   `json:"key_serde"`   // "string", "json", "bytearray"
+	ValueSerde string   `json:"value_serde"` // "string", "json", "bytearray"
+	UseAuth    bool     `json:"use_auth"`
 }
 
 // LoadConfig loads configuration from file

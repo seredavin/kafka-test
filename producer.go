@@ -10,6 +10,13 @@ import (
 	"github.com/IBM/sarama"
 )
 
+// SerDe types
+const (
+	serdeString    = "string"
+	serdeJSON      = "json"
+	serdeByteArray = "bytearray"
+)
+
 // KafkaProducer manages Kafka producer connection
 type KafkaProducer struct {
 	producer sarama.SyncProducer
@@ -95,9 +102,9 @@ func (p *KafkaProducer) SendMessage(key, value string) (partition int32, offset 
 // encodeValue encodes a value based on the specified serde type
 func (p *KafkaProducer) encodeValue(value, serde string) sarama.Encoder {
 	switch serde {
-	case "string":
+	case serdeString:
 		return sarama.StringEncoder(value)
-	case "json", "bytearray":
+	case serdeJSON, serdeByteArray:
 		// For JSON and ByteArray, use ByteEncoder
 		return sarama.ByteEncoder([]byte(value))
 	default:

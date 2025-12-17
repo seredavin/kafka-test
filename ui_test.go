@@ -369,13 +369,13 @@ func TestModel_View_NotConnected(t *testing.T) {
 func TestTruncate(t *testing.T) {
 	tests := []struct {
 		input    string
-		maxLen   int
 		expected string
+		maxLen   int
 	}{
-		{"", 10, "(empty)"},
-		{"short", 10, "short"},
-		{"exactly10c", 10, "exactly10c"},
-		{"this is a very long string", 10, "this is a ..."},
+		{"", "(empty)", 10},
+		{"short", "short", 10},
+		{"exactly10c", "exactly10c", 10},
+		{"this is a very long string", "this is a ...", 10},
 	}
 
 	for _, tt := range tests {

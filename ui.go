@@ -12,6 +12,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
+// Constants
+const (
+	defaultBroker = "localhost:9092"
+	defaultSerde  = "json"
+)
+
 // View mode
 type viewMode int
 
@@ -55,20 +61,20 @@ type Message struct {
 
 // Model holds the application state
 type model struct {
-	config          *Config
-	producer        *KafkaProducer
-	currentView     viewMode
-	configInputs    []textinput.Model
-	messageKeyInput textinput.Model
+	config           *Config
+	producer         *KafkaProducer
+	configInputs     []textinput.Model
+	messages         []Message
+	messageKeyInput  textinput.Model
 	messageValueArea textarea.Model
-	configFocus     int
-	messageFocus    int
-	messages        []Message
-	statusMessage   string
-	connected       bool
-	width           int
-	height          int
-	err             error
+	statusMessage    string
+	err              error
+	currentView      viewMode
+	configFocus      int
+	messageFocus     int
+	width            int
+	height           int
+	connected        bool
 }
 
 type errMsg struct{ err error }
@@ -82,9 +88,9 @@ type connectSuccessMsg struct {
 }
 
 type messageResult struct {
-	partition int32
-	offset    int64
 	err       error
+	offset    int64
+	partition int32
 }
 
 // initialModel creates the initial model
@@ -94,7 +100,7 @@ func initialModel(config *Config) model {
 
 	// Broker input
 	configInputs[brokerField] = textinput.New()
-	configInputs[brokerField].Placeholder = "localhost:9092"
+	configInputs[brokerField].Placeholder = defaultBroker
 	configInputs[brokerField].SetValue(strings.Join(config.Brokers, ","))
 	configInputs[brokerField].Focus()
 	configInputs[brokerField].Width = 60
@@ -129,7 +135,7 @@ func initialModel(config *Config) model {
 	if config.KeySerde != "" {
 		configInputs[keySerdeField].SetValue(config.KeySerde)
 	} else {
-		configInputs[keySerdeField].SetValue("json")
+		configInputs[keySerdeField].SetValue(defaultSerde)
 	}
 	configInputs[keySerdeField].Width = 60
 
@@ -139,7 +145,7 @@ func initialModel(config *Config) model {
 	if config.ValueSerde != "" {
 		configInputs[valueSerdeField].SetValue(config.ValueSerde)
 	} else {
-		configInputs[valueSerdeField].SetValue("json")
+		configInputs[valueSerdeField].SetValue(defaultSerde)
 	}
 	configInputs[valueSerdeField].Width = 60
 
@@ -183,7 +189,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c", "esc":
 			if m.producer != nil {
-				m.producer.Close()
+				_ = m.producer.Close() // Ignore error on exit
 			}
 			return m, tea.Quit
 
@@ -583,7 +589,7 @@ func (m *model) connect() tea.Cmd {
 	return func() tea.Msg {
 		// Close existing producer
 		if m.producer != nil {
-			m.producer.Close()
+			_ = m.producer.Close() // Ignore error when reconnecting
 		}
 
 		// Update config from inputs
@@ -656,7 +662,7 @@ func (m *model) sendMessage() tea.Cmd {
 		}
 
 		partition, offset, err := m.producer.SendMessage(key, value)
-		return messageResult{partition, offset, err}
+		return messageResult{err: err, partition: partition, offset: offset}
 	}
 }
 
