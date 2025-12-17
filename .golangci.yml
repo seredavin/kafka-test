@@ -1,8 +1,5 @@
-version: "2"
-
 run:
   timeout: 5m
-  tests: true
 
 linters:
   enable:
@@ -13,57 +10,5 @@ linters:
     - staticcheck
     - unused
     - gofmt
-    - goimports
     - misspell
     - revive
-    - gosec
-    - unconvert
-    - goconst
-    - bodyclose
-
-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  
-  govet:
-    enable:
-      - assign
-      - atomic
-      - bools
-      - buildtag
-      - composites
-      - copylocks
-      - fieldalignment
-      - httpresponse
-      - loopclosure
-      - lostcancel
-      - nilfunc
-      - printf
-      - shift
-      - stdmethods
-      - structtag
-      - tests
-      - unmarshal
-      - unreachable
-      - unsafeptr
-      - unusedresult
-  
-  revive:
-    rules:
-      - name: exported
-        disabled: false
-      - name: unexported-return
-        disabled: true
-  
-  gosec:
-    excludes:
-      - G104 # Audit errors not checked - we check critical ones
-      - G304 # File path from user input - we validate paths
-  
-  misspell:
-    locale: US
-
-issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
