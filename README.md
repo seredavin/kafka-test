@@ -23,14 +23,12 @@
 Самый простой способ установки на macOS и Linux:
 
 ```bash
-# Добавить tap
-brew tap seredavin/tap
-
-# Установить
-brew install kafka-producer-ui
-
-# Или одной командой
+# Установить одной командой
 brew install seredavin/tap/kafka-producer-ui
+
+# Или с tap
+brew tap seredavin/tap
+brew install kafka-producer-ui
 ```
 
 Обновление:
