@@ -18,7 +18,28 @@
 
 ## Установка
 
-### Установка из релиза (рекомендуется)
+### Homebrew (macOS/Linux) 🍺
+
+Самый простой способ установки на macOS и Linux:
+
+```bash
+# Добавить tap
+brew tap seredavin/tap
+
+# Установить
+brew install kafka-producer-ui
+
+# Или одной командой
+brew install seredavin/tap/kafka-producer-ui
+```
+
+Обновление:
+```bash
+brew update
+brew upgrade kafka-producer-ui
+```
+
+### Установка из релиза
 
 Скачайте готовый бинарный файл для вашей платформы со страницы [Releases](https://github.com/seredavin/kafka-test/releases):
 

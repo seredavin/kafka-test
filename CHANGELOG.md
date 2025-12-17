@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+## [1.0.2] - 2024-12-17
+
+### Добавлено
+- Поддержка флагов командной строки: `--version` и `--help`
+- Конфигурация GoReleaser для автоматизации релизов
+- Автоматическая публикация в Homebrew tap
+- GoReleaser workflow для GitHub Actions
+- Документация по публикации в Homebrew
+
+### Изменено
+- Release workflow теперь использует GoReleaser
+- Автоматическая генерация Homebrew формулы
+
 ## [1.0.1] - 2024-12-17
 
 ### Добавлено
@@ -72,7 +85,8 @@
 - `Исправлено` - для исправления ошибок
 - `Безопасность` - для изменений, связанных с безопасностью
 
-[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/seredavin/kafka-test/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/seredavin/kafka-test/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/seredavin/kafka-test/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/seredavin/kafka-test/releases/tag/v1.0.0
 
