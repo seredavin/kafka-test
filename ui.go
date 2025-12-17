@@ -342,61 +342,79 @@ func (m model) View() string {
 		content = m.renderMessageView()
 	}
 
-	// Status bar
-	statusStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252")).
-		Background(lipgloss.Color("236")).
-		Padding(0, 1)
+	// Status bar with gradient effect
+	var statusStyle lipgloss.Style
+	if m.connected {
+		statusStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Background(lipgloss.Color("#10B981")).
+			Bold(true).
+			Padding(0, 2)
+	} else {
+		statusStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#FAFAFA")).
+			Background(lipgloss.Color("#6B7280")).
+			Padding(0, 2)
+	}
 
 	status := m.statusMessage
 	if status == "" {
 		if m.connected {
-			status = "Connected to Kafka"
+			status = "● Connected to Kafka"
 		} else {
-			status = "Not connected"
+			status = "○ Not connected"
 		}
 	}
 
+	// Modern help bar
 	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		Padding(1, 0)
+		Foreground(lipgloss.Color("#6B7280")).
+		Background(lipgloss.Color("#1F2937")).
+		Padding(0, 2)
 
-	help := "F2: Switch View | F5: Connect | F9: Save Config | F10: Format JSON | Enter: Send | Esc: Quit"
+	help := "󰌌 F2: Switch │ 󰛐 F5: Connect │ 󰆓 F9: Save │ 󰉢 F10: Format │  Enter: Send │ 󰩈 Esc: Quit"
 
 	return lipgloss.JoinVertical(
 		lipgloss.Left,
 		content,
+		"",
 		statusStyle.Render(status),
 		helpStyle.Render(help),
 	)
 }
 
 func (m model) renderConfigView() string {
+	// Modern gradient title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("170")).
-		Padding(1, 0)
+		Foreground(lipgloss.Color("#A78BFA")).
+		Background(lipgloss.Color("#1F2937")).
+		Padding(1, 2).
+		MarginBottom(1)
 
 	fieldStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252"))
+		Foreground(lipgloss.Color("#9CA3AF")).
+		MarginTop(1)
 
 	focusedStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("205")).
-		Bold(true)
+		Foreground(lipgloss.Color("#60A5FA")).
+		Bold(true).
+		MarginTop(1)
 
-	title := titleStyle.Render("Kafka Producer Configuration")
+	title := titleStyle.Render("⚡ Kafka Producer Configuration")
 
 	fields := []struct {
 		label string
+		icon  string
 		field configField
 	}{
-		{"Brokers (comma-separated)", brokerField},
-		{"Topic", topicField},
-		{"Client Certificate Path", certField},
-		{"Client Key Path", keyField},
-		{"CA Certificate Path", caField},
-		{"Key Serde (string/json/bytearray)", keySerdeField},
-		{"Value Serde (string/json/bytearray)", valueSerdeField},
+		{"Brokers (comma-separated)", "󰒋", brokerField},
+		{"Topic", "󰏫", topicField},
+		{"Client Certificate Path", "󰄤", certField},
+		{"Client Key Path", "󰌆", keyField},
+		{"CA Certificate Path", "󰷛", caField},
+		{"Key Serde", "󰘦", keySerdeField},
+		{"Value Serde", "󰘦", valueSerdeField},
 	}
 
 	var rows []string
@@ -404,74 +422,114 @@ func (m model) renderConfigView() string {
 	rows = append(rows, "")
 
 	for _, f := range fields {
-		label := fieldStyle.Render(f.label + ":")
+		var label string
 		if m.configFocus == int(f.field) {
-			label = focusedStyle.Render(f.label + ":")
+			label = focusedStyle.Render(f.icon + " " + f.label + " ›")
+		} else {
+			label = fieldStyle.Render(f.icon + " " + f.label + ":")
 		}
 
 		rows = append(rows, label)
 		rows = append(rows, m.configInputs[f.field].View())
-		rows = append(rows, "")
 	}
 
-	useAuthLabel := "Use mTLS Authentication: "
-	useAuthValue := "NO"
+	// mTLS status badge
 	certVal := m.configInputs[certField].Value()
 	keyVal := m.configInputs[keyField].Value()
 	caVal := m.configInputs[caField].Value()
+
+	var authBadge string
 	if m.config.UseAuth || (certVal != "" && keyVal != "" && caVal != "") {
-		useAuthValue = "YES"
+		authBadgeStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#10B981")).
+			Background(lipgloss.Color("#064E3B")).
+			Padding(0, 1).
+			MarginTop(1)
+		authBadge = authBadgeStyle.Render("🔒 mTLS Enabled")
+	} else {
+		authBadgeStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#6B7280")).
+			Background(lipgloss.Color("#1F2937")).
+			Padding(0, 1).
+			MarginTop(1)
+		authBadge = authBadgeStyle.Render("🔓 mTLS Disabled")
 	}
-	rows = append(rows, fieldStyle.Render(useAuthLabel+useAuthValue))
+
+	rows = append(rows, "")
+	rows = append(rows, authBadge)
 
 	return lipgloss.JoinVertical(lipgloss.Left, rows...)
 }
 
 func (m model) renderMessageView() string {
+	// Modern title with topic badge
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("170")).
-		Padding(1, 0)
+		Foreground(lipgloss.Color("#A78BFA")).
+		Background(lipgloss.Color("#1F2937")).
+		Padding(1, 2).
+		MarginBottom(1)
+
+	topicBadge := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#FBBF24")).
+		Background(lipgloss.Color("#451A03")).
+		Padding(0, 1).
+		Bold(true).
+		Render(m.config.Topic)
+
+	title := titleStyle.Render("󰭻 Send Message") + " " + topicBadge
 
 	fieldStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252"))
+		Foreground(lipgloss.Color("#9CA3AF")).
+		MarginTop(1)
 
 	focusedStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("205")).
-		Bold(true)
-
-	title := titleStyle.Render(fmt.Sprintf("Send Message to Topic: %s", m.config.Topic))
+		Foreground(lipgloss.Color("#60A5FA")).
+		Bold(true).
+		MarginTop(1)
 
 	var rows []string
 	rows = append(rows, title)
 	rows = append(rows, "")
 
 	// Key field
-	keyLabel := fieldStyle.Render("Message Key (optional):")
+	var keyLabel string
 	if m.messageFocus == int(msgKeyField) {
-		keyLabel = focusedStyle.Render("Message Key (optional):")
+		keyLabel = focusedStyle.Render("󰌆 Message Key (optional) ›")
+	} else {
+		keyLabel = fieldStyle.Render("󰌆 Message Key (optional):")
 	}
 
 	rows = append(rows, keyLabel)
 	rows = append(rows, m.messageKeyInput.View())
-	rows = append(rows, "")
 
 	// Value field
-	valueLabel := fieldStyle.Render("Message Value (JSON):")
+	var valueLabel string
 	if m.messageFocus == int(msgValueField) {
-		valueLabel = focusedStyle.Render("Message Value (JSON):")
+		valueLabel = focusedStyle.Render("󰗀 Message Value (JSON) ›")
+	} else {
+		valueLabel = fieldStyle.Render("󰗀 Message Value (JSON):")
 	}
 
 	rows = append(rows, valueLabel)
 	rows = append(rows, m.messageValueArea.View())
 	rows = append(rows, "")
 
-	// Message history
-	historyTitle := titleStyle.Render("Message History:")
-	rows = append(rows, historyTitle)
+	// Message history section
+	historyHeaderStyle := lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#A78BFA")).
+		Background(lipgloss.Color("#1F2937")).
+		Padding(0, 2).
+		MarginTop(1).
+		MarginBottom(1)
+
+	rows = append(rows, historyHeaderStyle.Render("󰋼 Message History"))
 
 	if len(m.messages) == 0 {
-		rows = append(rows, fieldStyle.Render("No messages sent yet"))
+		emptyStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#6B7280")).
+			Italic(true)
+		rows = append(rows, emptyStyle.Render("  No messages sent yet"))
 	} else {
 		// Show last 5 messages
 		start := 0
@@ -481,19 +539,37 @@ func (m model) renderMessageView() string {
 
 		for i := start; i < len(m.messages); i++ {
 			msg := m.messages[i]
-			statusColor := "34"
+
+			var statusBadge string
+			var msgStyle lipgloss.Style
+
 			if strings.HasPrefix(msg.Status, "Failed") {
-				statusColor = "196"
+				statusBadge = lipgloss.NewStyle().
+					Foreground(lipgloss.Color("#EF4444")).
+					Background(lipgloss.Color("#450A0A")).
+					Padding(0, 1).
+					Render("✗ FAILED")
+				msgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FCA5A5"))
+			} else {
+				statusBadge = lipgloss.NewStyle().
+					Foreground(lipgloss.Color("#10B981")).
+					Background(lipgloss.Color("#064E3B")).
+					Padding(0, 1).
+					Render("✓ SUCCESS")
+				msgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#6EE7B7"))
 			}
 
-			msgStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(statusColor))
-			msgStr := fmt.Sprintf("[%s] Key: %s | Status: %s",
-				msg.Timestamp.Format("15:04:05"),
-				truncate(msg.Key, 20),
-				msg.Status)
+			timeStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#9CA3AF"))
+			keyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#60A5FA"))
+
+			msgStr := fmt.Sprintf("  %s %s │ Key: %s",
+				timeStyle.Render(msg.Timestamp.Format("15:04:05")),
+				statusBadge,
+				keyStyle.Render(truncate(msg.Key, 20)))
 
 			if msg.Status == "Success" {
-				msgStr += fmt.Sprintf(" | Partition: %d, Offset: %d", msg.Partition, msg.Offset)
+				partitionStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA"))
+				msgStr += partitionStyle.Render(fmt.Sprintf(" │ P:%d O:%d", msg.Partition, msg.Offset))
 			}
 
 			rows = append(rows, msgStyle.Render(msgStr))
