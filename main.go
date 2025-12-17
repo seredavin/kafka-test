@@ -19,6 +19,7 @@ func main() {
 	p := tea.NewProgram(
 		initialModel(config),
 		tea.WithAltScreen(),
+		tea.WithInputTTY(),
 	)
 
 	// Run the program

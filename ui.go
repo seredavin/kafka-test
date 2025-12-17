@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
@@ -54,9 +55,10 @@ type model struct {
 	config          *Config
 	producer        *KafkaProducer
 	currentView     viewMode
-	configFocus     configField
-	messageFocus    messageField
-	inputs          map[string]string
+	configInputs    []textinput.Model
+	messageInputs   []textinput.Model
+	configFocus     int
+	messageFocus    int
 	messages        []Message
 	statusMessage   string
 	connected       bool
@@ -79,23 +81,62 @@ type messageResult struct {
 
 // initialModel creates the initial model
 func initialModel(config *Config) model {
-	inputs := make(map[string]string)
-	inputs["broker"] = strings.Join(config.Brokers, ",")
-	inputs["topic"] = config.Topic
-	inputs["cert"] = config.CertFile
-	inputs["key"] = config.KeyFile
-	inputs["ca"] = config.CAFile
-	inputs["msgkey"] = ""
-	inputs["msgvalue"] = ""
+	// Create config input fields
+	configInputs := make([]textinput.Model, 5)
+
+	// Broker input
+	configInputs[brokerField] = textinput.New()
+	configInputs[brokerField].Placeholder = "localhost:9092"
+	configInputs[brokerField].SetValue(strings.Join(config.Brokers, ","))
+	configInputs[brokerField].Focus()
+	configInputs[brokerField].Width = 60
+
+	// Topic input
+	configInputs[topicField] = textinput.New()
+	configInputs[topicField].Placeholder = "my-topic"
+	configInputs[topicField].SetValue(config.Topic)
+	configInputs[topicField].Width = 60
+
+	// Cert input
+	configInputs[certField] = textinput.New()
+	configInputs[certField].Placeholder = "/path/to/cert.pem"
+	configInputs[certField].SetValue(config.CertFile)
+	configInputs[certField].Width = 60
+
+	// Key input
+	configInputs[keyField] = textinput.New()
+	configInputs[keyField].Placeholder = "/path/to/key.pem"
+	configInputs[keyField].SetValue(config.KeyFile)
+	configInputs[keyField].Width = 60
+
+	// CA input
+	configInputs[caField] = textinput.New()
+	configInputs[caField].Placeholder = "/path/to/ca.pem"
+	configInputs[caField].SetValue(config.CAFile)
+	configInputs[caField].Width = 60
+
+	// Create message input fields
+	messageInputs := make([]textinput.Model, 2)
+
+	// Message key input
+	messageInputs[msgKeyField] = textinput.New()
+	messageInputs[msgKeyField].Placeholder = "optional-key"
+	messageInputs[msgKeyField].Width = 70
+
+	// Message value input
+	messageInputs[msgValueField] = textinput.New()
+	messageInputs[msgValueField].Placeholder = `{"example": "json"}`
+	messageInputs[msgValueField].Width = 70
 
 	return model{
-		config:       config,
-		currentView:  configView,
-		configFocus:  brokerField,
-		messageFocus: msgKeyField,
-		inputs:       inputs,
-		messages:     []Message{},
-		connected:    false,
+		config:        config,
+		currentView:   configView,
+		configInputs:  configInputs,
+		messageInputs: messageInputs,
+		configFocus:   0,
+		messageFocus:  0,
+		messages:      []Message{},
+		connected:     false,
 	}
 }
 
@@ -120,25 +161,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "tab":
 			if m.currentView == configView {
-				m.configFocus = (m.configFocus + 1) % maxConfigField
+				m.configInputs[m.configFocus].Blur()
+				m.configFocus = (m.configFocus + 1) % int(maxConfigField)
+				m.configInputs[m.configFocus].Focus()
 			} else {
-				m.messageFocus = (m.messageFocus + 1) % maxMessageField
+				m.messageInputs[m.messageFocus].Blur()
+				m.messageFocus = (m.messageFocus + 1) % int(maxMessageField)
+				m.messageInputs[m.messageFocus].Focus()
 			}
 			return m, nil
 
 		case "shift+tab":
 			if m.currentView == configView {
+				m.configInputs[m.configFocus].Blur()
 				if m.configFocus == 0 {
-					m.configFocus = maxConfigField - 1
+					m.configFocus = int(maxConfigField) - 1
 				} else {
 					m.configFocus--
 				}
+				m.configInputs[m.configFocus].Focus()
 			} else {
+				m.messageInputs[m.messageFocus].Blur()
 				if m.messageFocus == 0 {
-					m.messageFocus = maxMessageField - 1
+					m.messageFocus = int(maxMessageField) - 1
 				} else {
 					m.messageFocus--
 				}
+				m.messageInputs[m.messageFocus].Focus()
 			}
 			return m, nil
 
@@ -146,12 +195,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Toggle between views
 			if m.currentView == configView {
 				if m.connected {
+					m.configInputs[m.configFocus].Blur()
 					m.currentView = messageView
+					m.messageInputs[m.messageFocus].Focus()
 				} else {
 					m.statusMessage = "Please connect to Kafka first (F5)"
 				}
 			} else {
+				m.messageInputs[m.messageFocus].Blur()
 				m.currentView = configView
+				m.configInputs[m.configFocus].Focus()
 			}
 			return m, nil
 
@@ -172,26 +225,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "f10":
 			// Format JSON in message value field
-			if m.currentView == messageView && m.messageFocus == msgValueField {
+			if m.currentView == messageView && m.messageFocus == int(msgValueField) {
 				return m, m.formatJSON()
 			}
 			return m, nil
-
-		case "backspace":
-			field := m.getCurrentField()
-			if len(m.inputs[field]) > 0 {
-				m.inputs[field] = m.inputs[field][:len(m.inputs[field])-1]
-			}
-			return m, nil
-
-		default:
-			// Handle text input
-			if len(msg.String()) == 1 {
-				field := m.getCurrentField()
-				m.inputs[field] += msg.String()
-			}
-			return m, nil
 		}
+
+		// Delegate to textinput for handling
+		var cmd tea.Cmd
+		if m.currentView == configView {
+			m.configInputs[m.configFocus], cmd = m.configInputs[m.configFocus].Update(msg)
+		} else {
+			m.messageInputs[m.messageFocus], cmd = m.messageInputs[m.messageFocus].Update(msg)
+		}
+		return m, cmd
 
 	case successMsg:
 		m.statusMessage = msg.msg
@@ -206,22 +253,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.err != nil {
 			m.messages = append(m.messages, Message{
 				Timestamp: time.Now(),
-				Key:       m.inputs["msgkey"],
-				Value:     m.inputs["msgvalue"],
+				Key:       m.messageInputs[msgKeyField].Value(),
+				Value:     m.messageInputs[msgValueField].Value(),
 				Status:    fmt.Sprintf("Failed: %v", msg.err),
 			})
 		} else {
 			m.messages = append(m.messages, Message{
 				Timestamp: time.Now(),
-				Key:       m.inputs["msgkey"],
-				Value:     m.inputs["msgvalue"],
+				Key:       m.messageInputs[msgKeyField].Value(),
+				Value:     m.messageInputs[msgValueField].Value(),
 				Status:    "Success",
 				Partition: msg.partition,
 				Offset:    msg.offset,
 			})
 			// Clear message fields after successful send
-			m.inputs["msgkey"] = ""
-			m.inputs["msgvalue"] = ""
+			m.messageInputs[msgKeyField].SetValue("")
+			m.messageInputs[msgValueField].SetValue("")
 		}
 		return m, nil
 	}
@@ -283,28 +330,17 @@ func (m model) renderConfigView() string {
 		Foreground(lipgloss.Color("205")).
 		Bold(true)
 
-	inputStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252")).
-		Background(lipgloss.Color("236")).
-		Padding(0, 1).
-		Width(60)
-
-	focusedInputStyle := inputStyle.Copy().
-		Background(lipgloss.Color("238")).
-		Foreground(lipgloss.Color("229"))
-
 	title := titleStyle.Render("Kafka Producer Configuration")
 
 	fields := []struct {
 		label string
-		key   string
 		field configField
 	}{
-		{"Brokers (comma-separated)", "broker", brokerField},
-		{"Topic", "topic", topicField},
-		{"Client Certificate Path", "cert", certField},
-		{"Client Key Path", "key", keyField},
-		{"CA Certificate Path", "ca", caField},
+		{"Brokers (comma-separated)", brokerField},
+		{"Topic", topicField},
+		{"Client Certificate Path", certField},
+		{"Client Key Path", keyField},
+		{"CA Certificate Path", caField},
 	}
 
 	var rows []string
@@ -313,30 +349,21 @@ func (m model) renderConfigView() string {
 
 	for _, f := range fields {
 		label := fieldStyle.Render(f.label + ":")
-		if m.configFocus == f.field {
+		if m.configFocus == int(f.field) {
 			label = focusedStyle.Render(f.label + ":")
 		}
 
-		input := m.inputs[f.key]
-		if input == "" {
-			input = " "
-		}
-
-		var inputBox string
-		if m.configFocus == f.field {
-			inputBox = focusedInputStyle.Render(input + "▌")
-		} else {
-			inputBox = inputStyle.Render(input)
-		}
-
 		rows = append(rows, label)
-		rows = append(rows, inputBox)
+		rows = append(rows, m.configInputs[f.field].View())
 		rows = append(rows, "")
 	}
 
 	useAuthLabel := "Use mTLS Authentication: "
 	useAuthValue := "NO"
-	if m.config.UseAuth || (m.inputs["cert"] != "" && m.inputs["key"] != "" && m.inputs["ca"] != "") {
+	certVal := m.configInputs[certField].Value()
+	keyVal := m.configInputs[keyField].Value()
+	caVal := m.configInputs[caField].Value()
+	if m.config.UseAuth || (certVal != "" && keyVal != "" && caVal != "") {
 		useAuthValue = "YES"
 	}
 	rows = append(rows, fieldStyle.Render(useAuthLabel+useAuthValue))
@@ -357,19 +384,6 @@ func (m model) renderMessageView() string {
 		Foreground(lipgloss.Color("205")).
 		Bold(true)
 
-	inputStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("252")).
-		Background(lipgloss.Color("236")).
-		Padding(0, 1).
-		Width(70)
-
-	focusedInputStyle := inputStyle.Copy().
-		Background(lipgloss.Color("238")).
-		Foreground(lipgloss.Color("229"))
-
-	valueInputStyle := inputStyle.Copy().Height(5)
-	focusedValueInputStyle := focusedInputStyle.Copy().Height(5)
-
 	title := titleStyle.Render(fmt.Sprintf("Send Message to Topic: %s", m.config.Topic))
 
 	var rows []string
@@ -378,46 +392,22 @@ func (m model) renderMessageView() string {
 
 	// Key field
 	keyLabel := fieldStyle.Render("Message Key (optional):")
-	if m.messageFocus == msgKeyField {
+	if m.messageFocus == int(msgKeyField) {
 		keyLabel = focusedStyle.Render("Message Key (optional):")
 	}
 
-	keyInput := m.inputs["msgkey"]
-	if keyInput == "" {
-		keyInput = " "
-	}
-
-	var keyBox string
-	if m.messageFocus == msgKeyField {
-		keyBox = focusedInputStyle.Render(keyInput + "▌")
-	} else {
-		keyBox = inputStyle.Render(keyInput)
-	}
-
 	rows = append(rows, keyLabel)
-	rows = append(rows, keyBox)
+	rows = append(rows, m.messageInputs[msgKeyField].View())
 	rows = append(rows, "")
 
 	// Value field
 	valueLabel := fieldStyle.Render("Message Value:")
-	if m.messageFocus == msgValueField {
+	if m.messageFocus == int(msgValueField) {
 		valueLabel = focusedStyle.Render("Message Value:")
 	}
 
-	valueInput := m.inputs["msgvalue"]
-	if valueInput == "" {
-		valueInput = " "
-	}
-
-	var valueBox string
-	if m.messageFocus == msgValueField {
-		valueBox = focusedValueInputStyle.Render(valueInput + "▌")
-	} else {
-		valueBox = valueInputStyle.Render(valueInput)
-	}
-
 	rows = append(rows, valueLabel)
-	rows = append(rows, valueBox)
+	rows = append(rows, m.messageInputs[msgValueField].View())
 	rows = append(rows, "")
 
 	// Message history
@@ -457,31 +447,6 @@ func (m model) renderMessageView() string {
 	return lipgloss.JoinVertical(lipgloss.Left, rows...)
 }
 
-func (m model) getCurrentField() string {
-	if m.currentView == configView {
-		switch m.configFocus {
-		case brokerField:
-			return "broker"
-		case topicField:
-			return "topic"
-		case certField:
-			return "cert"
-		case keyField:
-			return "key"
-		case caField:
-			return "ca"
-		}
-	} else {
-		switch m.messageFocus {
-		case msgKeyField:
-			return "msgkey"
-		case msgValueField:
-			return "msgvalue"
-		}
-	}
-	return ""
-}
-
 func (m *model) connect() tea.Cmd {
 	return func() tea.Msg {
 		// Close existing producer
@@ -490,19 +455,21 @@ func (m *model) connect() tea.Cmd {
 		}
 
 		// Update config from inputs
-		brokers := strings.Split(m.inputs["broker"], ",")
+		brokers := strings.Split(m.configInputs[brokerField].Value(), ",")
 		for i := range brokers {
 			brokers[i] = strings.TrimSpace(brokers[i])
 		}
 
 		m.config.Brokers = brokers
-		m.config.Topic = m.inputs["topic"]
-		m.config.CertFile = m.inputs["cert"]
-		m.config.KeyFile = m.inputs["key"]
-		m.config.CAFile = m.inputs["ca"]
+		m.config.Topic = m.configInputs[topicField].Value()
+		m.config.CertFile = m.configInputs[certField].Value()
+		m.config.KeyFile = m.configInputs[keyField].Value()
+		m.config.CAFile = m.configInputs[caField].Value()
 
 		// Enable mTLS if certificates are provided
-		m.config.UseAuth = m.inputs["cert"] != "" && m.inputs["key"] != "" && m.inputs["ca"] != ""
+		m.config.UseAuth = m.configInputs[certField].Value() != "" &&
+			m.configInputs[keyField].Value() != "" &&
+			m.configInputs[caField].Value() != ""
 
 		// Create new producer
 		producer, err := NewKafkaProducer(m.config)
@@ -520,17 +487,19 @@ func (m *model) connect() tea.Cmd {
 func (m *model) saveConfig() tea.Cmd {
 	return func() tea.Msg {
 		// Update config from inputs
-		brokers := strings.Split(m.inputs["broker"], ",")
+		brokers := strings.Split(m.configInputs[brokerField].Value(), ",")
 		for i := range brokers {
 			brokers[i] = strings.TrimSpace(brokers[i])
 		}
 
 		m.config.Brokers = brokers
-		m.config.Topic = m.inputs["topic"]
-		m.config.CertFile = m.inputs["cert"]
-		m.config.KeyFile = m.inputs["key"]
-		m.config.CAFile = m.inputs["ca"]
-		m.config.UseAuth = m.inputs["cert"] != "" && m.inputs["key"] != "" && m.inputs["ca"] != ""
+		m.config.Topic = m.configInputs[topicField].Value()
+		m.config.CertFile = m.configInputs[certField].Value()
+		m.config.KeyFile = m.configInputs[keyField].Value()
+		m.config.CAFile = m.configInputs[caField].Value()
+		m.config.UseAuth = m.configInputs[certField].Value() != "" &&
+			m.configInputs[keyField].Value() != "" &&
+			m.configInputs[caField].Value() != ""
 
 		if err := SaveConfig(m.config); err != nil {
 			return errMsg{err}
@@ -546,8 +515,8 @@ func (m *model) sendMessage() tea.Cmd {
 			return errMsg{fmt.Errorf("not connected to Kafka")}
 		}
 
-		key := m.inputs["msgkey"]
-		value := m.inputs["msgvalue"]
+		key := m.messageInputs[msgKeyField].Value()
+		value := m.messageInputs[msgValueField].Value()
 
 		if value == "" {
 			return errMsg{fmt.Errorf("message value cannot be empty")}
@@ -560,7 +529,7 @@ func (m *model) sendMessage() tea.Cmd {
 
 func (m *model) formatJSON() tea.Cmd {
 	return func() tea.Msg {
-		value := m.inputs["msgvalue"]
+		value := m.messageInputs[msgValueField].Value()
 		if value == "" {
 			return successMsg{"Nothing to format"}
 		}
@@ -575,7 +544,7 @@ func (m *model) formatJSON() tea.Cmd {
 			return errMsg{err}
 		}
 
-		m.inputs["msgvalue"] = string(formatted)
+		m.messageInputs[msgValueField].SetValue(string(formatted))
 		return successMsg{"JSON formatted successfully"}
 	}
 }
