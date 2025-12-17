@@ -342,18 +342,18 @@ func (m model) View() string {
 		content = m.renderMessageView()
 	}
 
-	// Status bar with gradient effect
+	// Adaptive status bar
 	var statusStyle lipgloss.Style
 	if m.connected {
 		statusStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Background(lipgloss.Color("#10B981")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#FAFAFA"}).
+			Background(lipgloss.AdaptiveColor{Light: "#059669", Dark: "#10B981"}).
 			Bold(true).
 			Padding(0, 2)
 	} else {
 		statusStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#FAFAFA")).
-			Background(lipgloss.Color("#6B7280")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#FAFAFA"}).
+			Background(lipgloss.AdaptiveColor{Light: "#9CA3AF", Dark: "#6B7280"}).
 			Padding(0, 2)
 	}
 
@@ -366,10 +366,10 @@ func (m model) View() string {
 		}
 	}
 
-	// Modern help bar
+	// Adaptive help bar
 	helpStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#6B7280")).
-		Background(lipgloss.Color("#1F2937")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"}).
+		Background(lipgloss.AdaptiveColor{Light: "#F3F4F6", Dark: "#1F2937"}).
 		Padding(0, 2)
 
 	help := "󰌌 F2: Switch │ 󰛐 F5: Connect │ 󰆓 F9: Save │ 󰉢 F10: Format │  Enter: Send │ 󰩈 Esc: Quit"
@@ -384,20 +384,20 @@ func (m model) View() string {
 }
 
 func (m model) renderConfigView() string {
-	// Modern gradient title
+	// Adaptive title
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#A78BFA")).
-		Background(lipgloss.Color("#1F2937")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#7C3AED", Dark: "#A78BFA"}).
+		Background(lipgloss.AdaptiveColor{Light: "#F3F4F6", Dark: "#1F2937"}).
 		Padding(1, 2).
 		MarginBottom(1)
 
 	fieldStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#9CA3AF")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"}).
 		MarginTop(1)
 
 	focusedStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#60A5FA")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#2563EB", Dark: "#60A5FA"}).
 		Bold(true).
 		MarginTop(1)
 
@@ -433,7 +433,7 @@ func (m model) renderConfigView() string {
 		rows = append(rows, m.configInputs[f.field].View())
 	}
 
-	// mTLS status badge
+	// Adaptive mTLS status badge
 	certVal := m.configInputs[certField].Value()
 	keyVal := m.configInputs[keyField].Value()
 	caVal := m.configInputs[caField].Value()
@@ -441,15 +441,15 @@ func (m model) renderConfigView() string {
 	var authBadge string
 	if m.config.UseAuth || (certVal != "" && keyVal != "" && caVal != "") {
 		authBadgeStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#10B981")).
-			Background(lipgloss.Color("#064E3B")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#10B981"}).
+			Background(lipgloss.AdaptiveColor{Light: "#059669", Dark: "#064E3B"}).
 			Padding(0, 1).
 			MarginTop(1)
 		authBadge = authBadgeStyle.Render("🔒 mTLS Enabled")
 	} else {
 		authBadgeStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#6B7280")).
-			Background(lipgloss.Color("#1F2937")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#6B7280"}).
+			Background(lipgloss.AdaptiveColor{Light: "#9CA3AF", Dark: "#1F2937"}).
 			Padding(0, 1).
 			MarginTop(1)
 		authBadge = authBadgeStyle.Render("🔓 mTLS Disabled")
@@ -462,17 +462,17 @@ func (m model) renderConfigView() string {
 }
 
 func (m model) renderMessageView() string {
-	// Modern title with topic badge
+	// Adaptive title with topic badge
 	titleStyle := lipgloss.NewStyle().
 		Bold(true).
-		Foreground(lipgloss.Color("#A78BFA")).
-		Background(lipgloss.Color("#1F2937")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#7C3AED", Dark: "#A78BFA"}).
+		Background(lipgloss.AdaptiveColor{Light: "#F3F4F6", Dark: "#1F2937"}).
 		Padding(1, 2).
 		MarginBottom(1)
 
 	topicBadge := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#FBBF24")).
-		Background(lipgloss.Color("#451A03")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#FBBF24"}).
+		Background(lipgloss.AdaptiveColor{Light: "#D97706", Dark: "#451A03"}).
 		Padding(0, 1).
 		Bold(true).
 		Render(m.config.Topic)
@@ -480,11 +480,11 @@ func (m model) renderMessageView() string {
 	title := titleStyle.Render("󰭻 Send Message") + " " + topicBadge
 
 	fieldStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#9CA3AF")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"}).
 		MarginTop(1)
 
 	focusedStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#60A5FA")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#2563EB", Dark: "#60A5FA"}).
 		Bold(true).
 		MarginTop(1)
 
@@ -515,10 +515,10 @@ func (m model) renderMessageView() string {
 	rows = append(rows, m.messageValueArea.View())
 	rows = append(rows, "")
 
-	// Message history section
+	// Adaptive message history section
 	historyHeaderStyle := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#A78BFA")).
-		Background(lipgloss.Color("#1F2937")).
+		Foreground(lipgloss.AdaptiveColor{Light: "#7C3AED", Dark: "#A78BFA"}).
+		Background(lipgloss.AdaptiveColor{Light: "#F3F4F6", Dark: "#1F2937"}).
 		Padding(0, 2).
 		MarginTop(1).
 		MarginBottom(1)
@@ -527,7 +527,7 @@ func (m model) renderMessageView() string {
 
 	if len(m.messages) == 0 {
 		emptyStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("#6B7280")).
+			Foreground(lipgloss.AdaptiveColor{Light: "#9CA3AF", Dark: "#6B7280"}).
 			Italic(true)
 		rows = append(rows, emptyStyle.Render("  No messages sent yet"))
 	} else {
@@ -545,22 +545,22 @@ func (m model) renderMessageView() string {
 
 			if strings.HasPrefix(msg.Status, "Failed") {
 				statusBadge = lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#EF4444")).
-					Background(lipgloss.Color("#450A0A")).
+					Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#EF4444"}).
+					Background(lipgloss.AdaptiveColor{Light: "#DC2626", Dark: "#450A0A"}).
 					Padding(0, 1).
 					Render("✗ FAILED")
-				msgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#FCA5A5"))
+				msgStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#DC2626", Dark: "#FCA5A5"})
 			} else {
 				statusBadge = lipgloss.NewStyle().
-					Foreground(lipgloss.Color("#10B981")).
-					Background(lipgloss.Color("#064E3B")).
+					Foreground(lipgloss.AdaptiveColor{Light: "#FFFFFF", Dark: "#10B981"}).
+					Background(lipgloss.AdaptiveColor{Light: "#059669", Dark: "#064E3B"}).
 					Padding(0, 1).
 					Render("✓ SUCCESS")
-				msgStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#6EE7B7"))
+				msgStyle = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#059669", Dark: "#6EE7B7"})
 			}
 
-			timeStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#9CA3AF"))
-			keyStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#60A5FA"))
+			timeStyle := lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#6B7280", Dark: "#9CA3AF"})
+			keyStyle := lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#2563EB", Dark: "#60A5FA"})
 
 			msgStr := fmt.Sprintf("  %s %s │ Key: %s",
 				timeStyle.Render(msg.Timestamp.Format("15:04:05")),
@@ -568,7 +568,7 @@ func (m model) renderMessageView() string {
 				keyStyle.Render(truncate(msg.Key, 20)))
 
 			if msg.Status == "Success" {
-				partitionStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#A78BFA"))
+				partitionStyle := lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "#7C3AED", Dark: "#A78BFA"})
 				msgStr += partitionStyle.Render(fmt.Sprintf(" │ P:%d O:%d", msg.Partition, msg.Offset))
 			}
 
