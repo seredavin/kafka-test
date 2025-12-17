@@ -1,0 +1,104 @@
+project_name: kafka-producer-ui
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: kafka-producer-ui
+    main: .
+    binary: kafka-producer-ui
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+
+archives:
+  - id: kafka-producer-ui
+    format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
+    name_template: >-
+      {{ .ProjectName }}-
+      {{- .Os }}-
+      {{- .Arch }}
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\([[:word:]]+\))??!?:.+$'
+      order: 0
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\([[:word:]]+\))??!?:.+$'
+      order: 1
+    - title: Others
+      order: 999
+
+brews:
+  - name: kafka-producer-ui
+    repository:
+      owner: seredavin
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    folder: Formula
+    homepage: https://github.com/seredavin/kafka-test
+    description: Terminal UI for sending messages to Apache Kafka with mTLS support
+    license: MIT
+    test: |
+      system "#{bin}/kafka-producer-ui", "--version"
+    install: |
+      bin.install "kafka-producer-ui"
+
+release:
+  github:
+    owner: seredavin
+    name: kafka-test
+  draft: false
+  prerelease: auto
+  name_template: "{{.ProjectName}} v{{.Version}}"
+  header: |
+    ## Kafka Producer UI v{{.Version}}
+    
+    Terminal UI for sending messages to Apache Kafka with mTLS authentication support.
+  footer: |
+    ## Installation
+    
+    ### Homebrew (macOS/Linux)
+    ```bash
+    brew tap seredavin/tap
+    brew install kafka-producer-ui
+    ```
+    
+    ### Direct Download
+    Download the appropriate binary for your platform from the assets below.
+    
+    ---
+    
+    **Full Changelog**: https://github.com/seredavin/kafka-test/compare/v{{.PreviousTag}}...v{{.Tag}}
+

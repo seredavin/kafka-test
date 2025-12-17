@@ -44,3 +44,6 @@ checksums.txt
 # Temporary files
 tmp/
 temp/
+
+# Homebrew formula (should be in homebrew-tap repo)
+*.rb
